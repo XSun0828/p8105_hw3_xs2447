@@ -108,7 +108,8 @@ brfss = brfss_smart2010 %>%
   janitor::clean_names() %>% 
   filter(topic == "Overall Health") %>%
   filter(response %in% c("Poor","Fair", "Good", "Very good", "Excellent")) %>% 
-  arrange(factor(response, c("Poor","Fair", "Good", "Very good", "Excellent")))
+  arrange(factor(response, c("Poor","Fair", "Good", "Very good", "Excellent"))) %>% 
+  rename(state = locationabbr, location = locationdesc)
 ```
 
 
@@ -117,8 +118,8 @@ brfss = brfss_smart2010 %>%
 ```{r}
 brfss_2002 = brfss %>% 
   filter(year == 2002) %>% 
-  group_by(locationabbr) %>% 
-  summarize(obs_7 = n_distinct(locationdesc)) %>% 
+  group_by(state) %>% 
+  summarize(obs_7 = n_distinct(location)) %>% 
   filter(obs_7 >= 7)
   
 brfss_2002
@@ -129,8 +130,8 @@ There are 6 states were observed at 7 or more locations in 2002, including CT, F
 ```{r}
 brfss_2010 = brfss %>% 
   filter(year == 2010) %>% 
-  group_by(locationabbr) %>% 
-  summarize(obs_7 = n_distinct(locationdesc)) %>% 
+  group_by(state) %>% 
+  summarize(obs_7 = n_distinct(location)) %>% 
   filter(obs_7 >= 7)
   
 brfss_2010
@@ -144,9 +145,9 @@ There are 14 states were observed at 7 or more locations in 2010, including CA, 
 ```{r}
 brfss %>% 
   filter(response == "Excellent") %>% 
-  group_by(locationabbr, year) %>% 
+  group_by(state, year) %>% 
   summarize(means = mean(data_value)) %>% 
-  ggplot(aes(x = year, y = means, color = locationabbr)) +
+  ggplot(aes(x = year, y = means, color = state)) +
   geom_line(alpha = .6) 
 
 ```
@@ -156,11 +157,11 @@ From the plot, we can find that maximum means of the data_value is generally dec
 ```{r}
 brfss %>% 
   filter(response == "Excellent") %>% 
-  group_by(locationabbr, year) %>% 
+  group_by(state, year) %>% 
   summarize(means = mean(data_value)) %>% 
-  ggplot(aes(x = year, y = means, color = locationabbr)) +
+  ggplot(aes(x = year, y = means, color = state)) +
   geom_line(alpha = .6) +
-  gghighlight(locationabbr == "WV") 
+  gghighlight(state == "WV") 
 ```
 
 If we highlight the WV state, we can also find that for most of the time, the mean value of data in this state is lower than others'. 
@@ -169,10 +170,55 @@ If we highlight the WV state, we can also find that for most of the time, the me
 *Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 ```{r}
 brfss %>% 
-  filter(locationabbr == "NY", year == c(2006, 2010)) %>% 
+  filter(state == "NY", year == c(2006, 2010)) %>% 
   ggplot(aes(x = response)) +
   geom_bar() + 
   facet_grid(.~year)
 ```
 
 From the plot, we can see that the responses is equally distributed in 2006 while in 2010, more people choose good or poor. We can also find we get more response in 2010 compare to 2006. 
+
+## Problem 3
+*Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+```{r}
+accel_df = read_csv("accel_data.csv")
+```
+
+```{r}
+accel_tidy_df = accel_df %>% 
+  mutate(
+    week_doe = if_else(day %in% c("Saturday", "Sunday"), "weekend","weekday")
+    ) %>% 
+  relocate(week, day_id, day, week_doe) %>% 
+  pivot_longer(activity.1:activity.1440,
+               names_to = "minute",
+               names_prefix = "activity.",
+               values_to = "activity_count") %>% 
+  mutate(minute = as.double(minute))
+```
+
+The original dataset has 35 rows and 1143 columns. After tidying up, the dataset has 50400 rows and 6 variables, including the week number, the day number, the day of the week, weekday or weekend, minute number and the activity count at each specific time. The dataset records the activity count over 35 days.
+
+
+*Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r}
+accel_tidy_df %>% 
+  group_by(day_id) %>% 
+  summarize(day_total = sum(activity_count)) %>% 
+  knitr::kable()
+```
+
+The total counts of activity fluctuate significantly, range from 1440 to 685910, so there is no apparent trend. 
+
+*Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+```{r}
+accel_tidy_df %>% 
+  ggplot(aes(x = minute, y = activity_count, color = day)) +
+  geom_point(alpha = .3) +
+  geom_smooth(alpha = .7, se = FALSE) + 
+  scale_x_continuous(breaks = seq(0, 1440, 120))
+```
+
+From the plot, we can see that the activity count is relatively low from about 0 to 300 minute, and from 1320 to 1440 minute. These minutes are about 10pm to 6am. Therefore, generally speaking, the activity count is low when people are asleep. The peaks of the activity count often happen from about 360 to 720 minute (6am to 12pm), 960 to 1020 (4pm to 5pm), and 1140 to 1320 (7pm to 10pm). At these times, people are more likely doing activity, therefore the count is high. Besides, we can also find that the people usually doing more activity at Friday night. On Wednesday, this people are usually doing heaviest activity at about 7:30pm. 
+
