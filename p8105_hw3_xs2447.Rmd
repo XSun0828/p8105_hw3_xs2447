@@ -39,12 +39,12 @@ There are 1384617 rows and 15 variables. Each row of the dataset is a product fr
 *How many aisles are there, and which aisles are the most items ordered from?
 
 ```{r}
-aisle = instacart %>% 
+aisle_df = instacart %>% 
   group_by(aisle,aisle_id) %>% 
   summarize(n_obs = n()) %>% 
-  arrange(desc(n_obs), .groups = "drop")
+  arrange(desc(n_obs))
 
-aisle
+aisle_df
 ```
 There are 134 aisles and fresh vegetables has the most (150609 in total) ordered items.
 
@@ -52,13 +52,13 @@ There are 134 aisles and fresh vegetables has the most (150609 in total) ordered
 *Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
 ```{r}
-aisle %>% 
+aisle_df %>% 
   filter(n_obs > 10000) %>% 
   ggplot(aes(x = aisle, y = n_obs)) +
   geom_col() +
-  coord_flip()
-  
+  coord_flip() 
 ```
+There are 39 aisles with more than 10000 items ordered. From these 39 aisles, fresh vegetables aisle has the most items, while butter has the least items.
 
 *Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
@@ -88,3 +88,32 @@ mean_hour_of_day
 ```
 
 
+## Problem 2
+
+load BRFSS dataset
+
+```{r}
+data("brfss_smart2010")
+```
+
+*format the data to use appropriate variable names
+*focus on the “Overall Health” topic
+*include only responses from “Excellent” to “Poor”
+*organize responses as a factor taking levels ordered from “Poor” to “Excellent”
+
+```{r}
+brfss = brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>%
+  filter(response %in% c("Poor","Fair", "Good", "Very good", "Excellent")) %>% 
+  arrange(factor(response, c("Poor","Fair", "Good", "Very good", "Excellent")))
+```
+
+
+*In 2002, which states were observed at 7 or more locations? What about in 2010?
+
+
+*Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
+
+
+*Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
