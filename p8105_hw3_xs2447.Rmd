@@ -60,6 +60,7 @@ aisle_df %>%
 ```
 There are 39 aisles with more than 10000 items ordered. From these 39 aisles, fresh vegetables aisle has the most items, while butter has the least items.
 
+
 *Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ```{r}
@@ -74,6 +75,8 @@ three_pop = instacart %>%
 
 three_pop
 ```
+The most popular products in baking ingredients are Light Brown Sugar, Pure Baking Soda and Cane Sugar. From dog food care, the most three popular products are Snack Sticks Chicken & Rice Recipe Dog Treats, Organix Chicken & Brown Rice Recipe, and Small Dog Biscuits. From packaged vegetables fruits, Organic Baby Spinach, Organic Raspberries, and Organic Blueberries are most popular.
+
 
 *Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
 
@@ -86,7 +89,7 @@ mean_hour_of_day = instacart %>%
 
 mean_hour_of_day
 ```
-
+For Pink Lady Apples and Coffee Ice Cream, the mean hour of order is at mid of the day on each day, the mean ranges from 12.17391 to 14.68519.
 
 ## Problem 2
 
